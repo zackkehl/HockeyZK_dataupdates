@@ -29,7 +29,11 @@ jobs:
       run: |
         Rscript -e "install.packages('DBI', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('RMySQL', repos='http://cran.rstudio.com/')"
-        Rscript -e "install.packages('tidyverse', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('tidyr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('readr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('purrr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('stringr', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('zoo', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('glue', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('jsonlite', repos='http://cran.rstudio.com/')"

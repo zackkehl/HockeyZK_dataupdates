@@ -1,6 +1,10 @@
 name: Run Data Updates
 
 on:
+
+  # Allow manual trigger
+  workflow_dispatch:
+  
   schedule:
     # Schedule to run daily at 2 AM (UTC timezone)
     - cron: "0 8 * * *"

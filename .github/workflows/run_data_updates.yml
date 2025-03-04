@@ -24,8 +24,8 @@ jobs:
 
     # Step 3: Install required R packages
     - name: Install packages
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
+      uses: r-lib/actions/setup-r-dependencies@v2
+      with:
           packages: |
             any::tidyverse 
             any::DBI

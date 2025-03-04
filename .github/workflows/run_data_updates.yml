@@ -3,9 +3,9 @@ name: Run Data Updates
 on:
   # Allow manual trigger
   workflow_dispatch:
-  
+
+  # Scheduled trigger (e.g., daily at 3 AM EST / 8 AM UTC)
   schedule:
-    # Schedule to run daily at 2 AM (UTC timezone)
     - cron: "0 8 * * *"
 
 jobs:
@@ -20,23 +20,26 @@ jobs:
     # Step 2: Set up R environment
     - name: Set up R
       uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: '4.3.0'
 
     # Step 3: Install required R packages
-    - name: Install packages
-      uses: r-lib/actions/setup-r-dependencies@v2
-      with:
-          packages: |
-            any::tidyverse 
-            any::DBI
-            any::RMySQL
-            any::rvest
-            any::reshape2
-            any::data.table
-            any::xgboost
-            any::fastDummies
-            any::Matrix
-            any::glmnet
-        
+    - name: Install R packages
+      run: |
+        Rscript -e "install.packages('DBI', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('RMySQL', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('tidyverse', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('zoo', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('glue', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('jsonlite', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('rvest', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('reshape2', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('data.table', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('xgboost', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('fastDummies', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('Matrix', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('glmnet', repos='http://cran.rstudio.com/')"
+
     # Step 4: Run the R script
     - name: Run R script
       run: Rscript _data_updates.R

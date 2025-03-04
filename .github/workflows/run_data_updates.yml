@@ -37,6 +37,7 @@ jobs:
         Rscript -e "install.packages('zoo', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('glue', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('jsonlite', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('Rtools', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('rvest', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('reshape2', repos='http://cran.rstudio.com/')"
         Rscript -e "install.packages('data.table', repos='http://cran.rstudio.com/')"

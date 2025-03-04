@@ -27,8 +27,24 @@ jobs:
     # Step 3: Install required R packages
     - name: Install R packages
       run: |
-        Rscript -e "install.packages(c('DBI', 'RMySQL', 'tidyverse', 'zoo', 'glue', 'jsonlite', 'rvest', 'reshape2', 'data.table', 'xgboost', 'fastDummies', 'Matrix', 'glmnet'), repos='http://cran.rstudio.com/', dependencies=TRUE)"
-
+        Rscript -e "install.packages('DBI', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('RMySQL', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('tidyr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('readr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('purr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('stringr', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('zoo', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('glue', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('jsonlite', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('rvest', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('reshape2', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('data.table', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('xgboost', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('fastDummies', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('Matrix', repos='http://cran.rstudio.com/')"
+        Rscript -e "install.packages('glmnet', repos='http://cran.rstudio.com/')"
+        
     # Step 4: Run the R script
     - name: Run R script
       run: Rscript _data_updates.R

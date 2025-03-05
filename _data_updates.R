@@ -1745,7 +1745,7 @@ toi_teams <- function(pbp){
   return(toi)
 }
 
-host <- "localhost"
+host <- "127.0.0.1"
 user <- "root"
 password <- "HockeyZKMySQL88"
 database <- "hockeyzk"

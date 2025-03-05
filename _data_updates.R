@@ -1745,10 +1745,10 @@ toi_teams <- function(pbp){
   return(toi)
 }
 
-host <- Sys.getenv("MYSQL_HOST")
-user <- Sys.getenv("MYSQL_USER")
-password <- Sys.getenv("MYSQL_PASSWORD")
-database <- Sys.getenv("MYSQL_DB")
+host <- "localhost"
+user <- "root"
+password <- "HockeyZKMySQL88"
+database <- "hockeyzk"
 
 con <- dbConnect(RMySQL::MySQL(), dbname = database, host = host, username = user, password = password)
 

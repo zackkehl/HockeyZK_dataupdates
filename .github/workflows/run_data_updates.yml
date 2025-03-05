@@ -45,6 +45,7 @@ jobs:
       - name: Start MySQL
         run: |
           sudo /etc/init.d/mysql start
+          sudo mysql --user=root --password=root
 
       - name: Import data
         run: Rscript -e 'source("_data_updates.R")'

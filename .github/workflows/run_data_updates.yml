@@ -36,5 +36,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      - name: Set up environment variables
+        run: |
+          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> $GITHUB_ENV
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> $GITHUB_ENV
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> $GITHUB_ENV
+          echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> $GITHUB_ENV
+
       - name: Import data
         run: Rscript -e 'source("_data_updates.R")'

@@ -1776,7 +1776,7 @@ if(length(games_to_scrape)>0){
   pbp <- pbp %>% arrange(event_idx)
 }
 
-saveRDS(pbp,"pbp_24_25.rds")
+pbp %>% saveRDS("data/pbp_24_25.rds")
 ################################################################################
 
 

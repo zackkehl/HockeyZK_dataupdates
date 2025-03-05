@@ -42,8 +42,8 @@ jobs:
         
       - name: Commit Results
         run: |
-          git config --global user.name "hockeyzk-data-github-actions[bot]"
-          git config --global user.email "hockeyzk-data-github-actions@users.noreply.github.com"
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
           git add pbp_24_25.rds
           git commit -m 'Data updated' || echo "No changes to commit"
           git push origin || echo "No changes to commit"

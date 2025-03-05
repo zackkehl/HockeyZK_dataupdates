@@ -1746,7 +1746,7 @@ toi_teams <- function(pbp){
 }
 
 #### PBP #######################################################################
-pbp <- read_rds("pbp_24_25.rds")
+pbp <- readRDS("pbp_24_25.rds")
 
 schedule_24_25 <- league_schedule("2024-09-29","2025-04-17")
 completed_games <- schedule_24_25 %>% filter(home_score+away_score>0)
@@ -1776,7 +1776,7 @@ if(length(games_to_scrape)>0){
   pbp <- pbp %>% arrange(event_idx)
 }
 
-write_rds(pbp,"pbp_24_24.rds")
+saveRDS(pbp,"pbp_24_25.rds")
 ################################################################################
 
 

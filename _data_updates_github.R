@@ -1746,7 +1746,7 @@ toi_teams <- function(pbp){
 }
 
 #### PBP #######################################################################
-pbp <- readRDS(url("https://github.com/zackkehl/dataupdates/raw/main/data/pbp_24_25.rds"))
+pbp <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/pbp_24_25.rds"))
 
 schedule_24_25 <- league_schedule("2024-09-29","2025-04-17")
 completed_games <- schedule_24_25 %>% filter(home_score+away_score>0)

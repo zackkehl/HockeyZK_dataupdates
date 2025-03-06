@@ -49,6 +49,6 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add pbp_24_25.rds
+          git add data/pbp_24_25.rds
           git commit -m 'Data updated' || echo "No changes to commit"
           git push origin || echo "No changes to commit"

@@ -1100,6 +1100,74 @@ league_schedule <- function(start,end){
   league <- league %>% filter(game_type == 2)
   return(league)
 }
+player <- function(id){
+  url <- glue("https://api-web.nhle.com/v1/player/{id}/landing")
+  player_data <- read_json(url)
+  
+  player_id <- player_data$playerId %>%
+    tibble() %>%
+    rename(playerID = ".")
+  first_name <- player_data$firstName %>%
+    tibble() %>%
+    dplyr::slice(1:1) %>%
+    rename(first_name = ".")
+  last_name <- player_data$lastName %>%
+    tibble() %>%
+    dplyr::slice(1:1) %>%
+    rename(last_name = ".")
+  position <- player_data$position %>%
+    tibble() %>%
+    rename(position_code = ".")
+  active <- player_data$isActive %>%
+    tibble() %>%
+    rename(isActive = ".")
+  if(active$isActive == TRUE){
+    team <- player_data$currentTeamAbbrev %>%
+      tibble() %>%
+      rename(team = ".")
+  }
+  headshot <- player_data$headshot %>%
+    tibble() %>%
+    rename(headshot = ".")
+  birthdate <- player_data$birthDate %>%
+    tibble() %>%
+    rename(birth_date = ".")
+  height <- player_data$heightInInches %>%
+    tibble() %>%
+    rename(height = ".")
+  weight <- player_data$weightInPounds %>%
+    tibble() %>%
+    rename(weight = ".")
+  
+  player_info <- if(active$isActive == TRUE){
+    bind_cols(player_id,first_name,last_name,position,team,active,headshot,birthdate,height,weight)
+  } else {
+    bind_cols(player_id,first_name,last_name,position,active,headshot,birthdate,height,weight)
+  }
+  
+  player_info$first_name <- unlist(player_info$first_name)
+  player_info$last_name <- unlist(player_info$last_name)
+  
+  player_info <- player_info %>%
+    mutate(
+      position = ifelse(position_code %in% c("C","L","R"),"F",position_code), .before = position_code) %>%
+    mutate(
+      full_name = paste(first_name,last_name), .before = first_name,
+      isActive = ifelse(isActive == TRUE,1,0)
+    ) %>%
+    select(-c(first_name,last_name))
+  
+  char_columns <- c("position","position_code","team")
+  for(i in char_columns){
+    if(i %not_in% names(player_info)){
+      player_info[, i] <- NA_character_
+    }
+  }
+  
+  player_info <- player_info %>% select(playerID,full_name,position,position_code,team,isActive,headshot,birth_date,height,weight)
+  
+  return(player_info)
+}
 
 #### PBP #######################################################################
 pbp <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/pbp_24_25.rds"))
@@ -1136,5 +1204,17 @@ pbp %>% saveRDS("pbp_24_25.rds")
 ################################################################################
 
 
+#### Player List ###############################################################
+player_data <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/player_data.rds"))
+existing_ids <- c(player_data$playerID)
 
+pbp_ids <- unique(c(pbp$home_on_1,pbp$home_on_2,pbp$home_on_3,pbp$home_on_4,pbp$home_on_5,pbp$home_on_6,pbp$home_on_7,
+                    pbp$away_on_1,pbp$away_on_2,pbp$away_on_3,pbp$away_on_4,pbp$away_on_5,pbp$away_on_6,pbp$away_on_7,pbp$event_goalie_id))
+pbp_ids <- pbp_ids[!is.na(pbp_ids)]
+
+ids_to_search <- unique(c(pbp_ids,existing_ids))
+player_data <- lapply(ids_to_search,player)
+player_data <- rbindlist(Map(as.data.frame,player_data)) %>% arrange(playerID)
+player_data %>% saveRDS("player_data.rds")
+################################################################################
 

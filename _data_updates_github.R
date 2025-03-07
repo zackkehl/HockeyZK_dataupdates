@@ -1200,7 +1200,7 @@ if(length(games_to_scrape)>0){
   pbp <- pbp %>% arrange(event_idx)
 }
 
-pbp %>% saveRDS("pbp_24_25.rds")
+pbp %>% saveRDS("data/pbp_24_25.rds")
 ################################################################################
 
 
@@ -1215,6 +1215,6 @@ pbp_ids <- pbp_ids[!is.na(pbp_ids)]
 ids_to_search <- unique(c(pbp_ids,existing_ids))
 player_data <- lapply(ids_to_search,player)
 player_data <- rbindlist(Map(as.data.frame,player_data)) %>% arrange(playerID)
-player_data %>% saveRDS("player_data.rds")
+player_data %>% saveRDS("data/player_data.rds")
 ################################################################################
 

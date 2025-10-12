@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
   # Scheduled trigger (e.g., daily at 3 AM EST / 8 AM UTC)
-  #schedule:
+  schedule:
     - cron: "0 8 * * *"
 
 permissions:

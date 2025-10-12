@@ -1076,16 +1076,24 @@ schedule <- function(date){
   schedule_data <- data_raw$gameWeek %>%
     tibble() %>%
     unnest_wider(1) %>%
-    unnest_longer(games) %>%
-    unnest_wider(games) %>%
-    select(date,season,id,gameType,awayTeam,homeTeam) %>%
-    rename(game_id = id, game_type = gameType) %>%
-    unnest_wider(awayTeam) %>%
-    select(any_of(c("date","season","game_id","game_type",
-                    away_id = "id",away_abbr = "abbrev",away_score = "score","homeTeam"))) %>%
-    unnest_wider(homeTeam) %>%
-    select(any_of(c("date","season","game_id","game_type","away_id","away_abbr","away_score",
-                    home_id = "id",home_abbr = "abbrev",home_score="score")))
+    unnest_longer(games)
+  
+  ifelse(sum(schedule_data$numberOfGames)>0,
+         schedule_data <- schedule_data %>%
+           unnest_wider(games) %>%
+           select(date,season,id,gameType,awayTeam,homeTeam) %>%
+           rename(game_id = id, game_type = gameType) %>%
+           unnest_wider(awayTeam) %>%
+           select(any_of(c("date","season","game_id","game_type",
+                           away_id = "id",away_abbr = "abbrev",away_score = "score","homeTeam"))) %>%
+           unnest_wider(homeTeam) %>%
+           select(any_of(c("date","season","game_id","game_type","away_id","away_abbr","away_score",
+                           home_id = "id",home_abbr = "abbrev",home_score="score"))),
+         schedule_data <- data.frame(date=character(),season=double(),game_id=double(),game_type=double(),
+                                     away_id=double(),away_abbr=character(),away_score=double(),
+                                     home_id=double(),home_abbr=character(),home_score=double())
+  )
+  
   
   return(schedule_data)
 }
@@ -1170,10 +1178,10 @@ player <- function(id){
 }
 
 #### PBP #######################################################################
-pbp <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/pbp_24_25.rds"))
+pbp <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/pbp_25_26.rds"))
 
-schedule_24_25 <- league_schedule("2024-09-29","2025-04-17")
-completed_games <- schedule_24_25 %>% filter(home_score+away_score>0)
+schedule_25_26 <- league_schedule("2025-10-05","2026-04-16")
+completed_games <- schedule_25_26 %>% filter(home_score+away_score>0)
 games_to_scrape <- setdiff(completed_games$game_id,unique(pbp$game_id))
 
 if(length(games_to_scrape)>0){
@@ -1200,7 +1208,7 @@ if(length(games_to_scrape)>0){
   pbp <- pbp %>% arrange(event_idx)
 }
 
-pbp %>% saveRDS("data/pbp_24_25.rds")
+pbp %>% saveRDS("data/pbp_25_26.rds")
 ################################################################################
 
 

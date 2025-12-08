@@ -38,9 +38,10 @@ jobs:
             any::remotes
 
       - name: Install older xgboost
-        run:  |
-          remotes::install_version("xgboost",version = "1.7.9.1", repos = "https://cloud.r-project.org")
-          shell: Rscript {0}
+        run: Rscript -e 'remotes::install_version("xgboost", version = "1.7.9.1", repos = "https://cloud.r-project.org")'
+
+      - name: Check xgboost version
+        run: Rscript -e 'packageVersion("xgboost")'
 
       - name: Check out repository
         uses: actions/checkout@v3

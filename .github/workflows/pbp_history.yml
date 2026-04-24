@@ -1,0 +1,54 @@
+name: PBP Updates
+
+on:
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  
+jobs:
+  import-data:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::tidyverse
+            any::glue
+            any::jsonlite
+            any::rvest
+            any::reshape2
+            any::data.table
+            
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Import data
+        run: Rscript -e 'source("pbp_history_collection.R")'
+        
+      - name: Commit Results
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add data/pbp_25_26.rds
+          git add data/pbp_24_25.rds
+          git add data/pbp_23_24.rds
+          git add data/pbp_22_23.rds
+          git add data/pbp_21_22.rds
+          git add data/pbp_20_21.rds
+          git add data/pbp_19_20.rds
+          git add data/pbp_18_19.rds
+          git add data/pbp_17_18.rds
+          git add data/pbp_16_17.rds
+          git add data/pbp_15_16.rds
+          git add data/pbp_14_15.rds
+          git commit -m 'Data updated' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"

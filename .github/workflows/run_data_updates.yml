@@ -36,6 +36,7 @@ jobs:
             any::Matrix
             any::glmnet
             any::remotes
+            any::xgboost
 
 
       - name: Check out repository

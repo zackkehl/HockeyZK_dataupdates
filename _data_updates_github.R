@@ -1179,10 +1179,10 @@ player <- function(id){
 }
 
 #### PBP #######################################################################
-pbp <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/pbp_25_26.rds"))
+pbp <- readRDS(url("https://github.com/zackkehl/HockeyZK_dataupdates/raw/main/data/pbp_26_27.rds"))
 
-schedule_25_26 <- league_schedule("2025-10-05","2026-04-16")
-completed_games <- schedule_25_26 %>% filter(home_score+away_score>0)
+schedule_26_27 <- league_schedule("2026-09-25","2027-04-12")
+completed_games <- schedule_26_27 %>% filter(home_score+away_score>0)
 games_to_scrape <- setdiff(completed_games$game_id,unique(pbp$game_id))
 
 if(length(games_to_scrape)>0){
@@ -1209,7 +1209,7 @@ if(length(games_to_scrape)>0){
   pbp <- pbp %>% arrange(event_idx)
 }
 
-pbp %>% saveRDS("data/pbp_25_26.rds")
+pbp %>% saveRDS("data/pbp_26_27.rds")
 ################################################################################
 
 

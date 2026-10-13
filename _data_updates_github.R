@@ -149,34 +149,41 @@ calculate_xg <- function(x){
     )
   xg_st$event_idx = as.numeric(as.character(xg_st$event_idx))
   
-  # OT #
-  xg_ot <- predict(
-    xg_model_ot,
-    xgb.DMatrix(
-      data = df_ot %>%
-        select(all_of(variable.names(xg_model_ot))) %>%
-        data.matrix(),
-      label = df_ot %>%
-        select(goal) %>%
-        data.matrix()
-    )
-  ) %>%
-    as_tibble() %>%
-    rename(xg = value) %>%
-    bind_cols(
-      select(
-        filter(pbp_xg, strength_state == "3v3", is_ot == 1),
-        event_idx
+  # OT CONDITIONS #
+  if(nrow(df_ot) > 0) {
+    xg_ot <- predict(
+      xg_model_ot,
+      xgb.DMatrix(
+        data = df_ot %>%
+          select(all_of(variable.names(xg_model_ot))) %>%
+          data.matrix(),
+        label = df_ot %>%
+          select(goal) %>%
+          data.matrix()
       )
-    )
-  xg_ot$event_idx = as.numeric(as.character(xg_ot$event_idx))
-  
-  # Combine #
-  xg_pred <- bind_rows(xg_5v5,xg_st,xg_ot)
-  x$event_idx <- as.numeric(as.character(x$event_idx))
-  xg_pred <- xg_pred %>%
-    right_join(x, by = "event_idx") %>%
-    arrange(event_idx)
+    ) %>%
+      as_tibble() %>%
+      rename(xg = value) %>%
+      bind_cols(
+        select(
+          filter(pbp_xg, strength_state == "3v3", is_ot == 1),
+          event_idx
+        )
+      )
+    xg_ot$event_idx = as.numeric(as.character(xg_ot$event_idx))
+    xg_pred <- bind_rows(xg_5v5,xg_st,xg_ot)
+    x$event_idx <- as.numeric(as.character(x$event_idx))
+    xg_pred <- xg_pred %>%
+      right_join(x, by = "event_idx") %>%
+      arrange(event_idx)
+    
+  } else {
+    xg_pred <- bind_rows(xg_5v5,xg_st)
+    x$event_idx <- as.numeric(as.character(x$event_idx))
+    xg_pred <- xg_pred %>%
+      right_join(x, by = "event_idx") %>%
+      arrange(event_idx)
+  }
   
   return(xg_pred)
 }

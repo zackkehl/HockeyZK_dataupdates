@@ -26,60 +26,93 @@ team_table <- data.frame(team_abbr,team_names,teamId)
 `%not_in%` <- Negate(`%in%`)
 xg_model_5v5 <- readRDS("xg_model_5v5.rds")
 xg_model_st <- readRDS("xg_model_st.rds")
+xg_model_ot <- readRDS("xg_model_ot.rds")
 xg_prep <- function(x){
-  df <- x %>%
+  pbp_xg <- x %>%
     mutate(
       event_idx = str_pad(event_idx, width = 4, side = "left", pad = 0),
-      event_id = as.numeric(as.character(paste0(game_id,event_idx)))
+      event_id = as.numeric(paste0(game_id,event_idx))
     ) %>%
     filter(period <= 4) %>%
-    filter(event_type %in% c("GOAL", "SHOT_ON_GOAL", "MISSED_SHOT")) %>%
     filter(secondary_type != "Penalty Shot" | is.na(secondary_type)) %>%
     group_by(game_id) %>%
     mutate(
-      time_since_last = game_seconds - lag(game_seconds)
-    ) %>%
-    mutate(
-      time_since_last = ifelse(is.na(time_since_last), game_seconds, time_since_last)
+      time_since_last = game_seconds - lag(game_seconds),
+      time_since_last = ifelse(is.na(time_since_last), game_seconds, time_since_last),
+      prev_event_type = lag(event_type),
+      prev_event_zone = lag(zone_code),
+      prev_x = lag(x),
+      prev_y = lag(y),
+      score_diff = case_when(
+        event_team_type == "home" ~ home_score - away_score,
+        event_team_type == "away" ~ away_score - home_score,
+        TRUE ~ 0
+      )
     ) %>%
     ungroup() %>%
+    filter(event_type %in% c("GOAL", "SHOT_ON_GOAL", "MISSED_SHOT")) %>%
     mutate(
       shot_type = secondary_type,
-      rebound = ifelse(time_since_last <= 2, 1, 0),
-      empty_net = ifelse(is.na(empty_net) | empty_net == FALSE, 0, 1),
-      goal = ifelse(event_type == "GOAL", 1, 0)
+      rebound = ifelse(time_since_last <= 2 & prev_event_type %in% c("GOAL", "SHOT_ON_GOAL", "MISSED_SHOT"),1,0),
+      rebound_dist = ifelse(rebound == 1, sqrt((x-prev_x)^2 + (y-prev_y)^2),0),
+      empty_net = ifelse(is.na(empty_net) | empty_net == FALSE,0,1),
+      goal = ifelse(event_type == "GOAL",1,0),
+      rush = ifelse(time_since_last <= 4 & prev_event_zone %in% c("N","D"),1,0),
+      is_ot = ifelse(period == 4,1,0)
     ) %>%
-    select(season, game_id, event_id, event_idx, strength_state, shot_distance, shot_angle, rebound, empty_net, goal,shot_type) %>%
-    filter(shot_type != "")
-  
-  df <- df %>% 
+    select(season, game_id, event_id, event_idx, strength_state, is_ot,
+           shot_distance, shot_angle, shot_type, rush,
+           rebound, rebound_dist, empty_net, goal) %>%
+    filter(shot_type != "") %>%
     mutate(type_value = 1) %>%
     pivot_wider(names_from = shot_type, values_from = type_value, values_fill = 0)
   
-  missing_feats <- tibble(feature = xg_model_5v5$feature_names) %>%
-    filter(feature %not_in% names(df)) %>%
-    mutate(val = 0) %>%
-    pivot_wider(names_from = feature, values_from = val)
-  
-  if(length(missing_feats) > 0){
-    df <- bind_cols(df, missing_feats)
-  }
-  
-  return(df)
+  pbp_xg <- na.omit(pbp_xg)
 }
 calculate_xg <- function(x){
-  data <- xg_prep(x)
+  st_states <- c("5v4","5v3","6v5","6v4","6v3","4v3","4v5","3v5","5v6","4v6","3v6","3v4","3v3","4v4")
+  pbp_xg <- xg_prep(x)
+  
+  missing_feats <- tibble(feature = variable.names(xg_model_5v5)) %>%
+    filter(feature %not_in% names(pbp_xg)) %>%
+    mutate(val = 0) %>%
+    pivot_wider(names_from = feature, values_from = val)
+  if(length(missing_feats) > 0){
+    pbp_xg <- bind_cols(pbp_xg, missing_feats)
+  }
+  missing_feats <- tibble(feature = variable.names(xg_model_st)) %>%
+    filter(feature %not_in% names(pbp_xg)) %>%
+    mutate(val = 0) %>%
+    pivot_wider(names_from = feature, values_from = val)
+  if(length(missing_feats) > 0){
+    pbp_xg <- bind_cols(pbp_xg, missing_feats)
+  }
+  missing_feats <- tibble(feature = variable.names(xg_model_ot)) %>%
+    filter(feature %not_in% names(pbp_xg)) %>%
+    mutate(val = 0) %>%
+    pivot_wider(names_from = feature, values_from = val)
+  if(length(missing_feats) > 0){
+    pbp_xg <- bind_cols(pbp_xg, missing_feats)
+  }
+  
+  df_5v5 <- pbp_xg %>% 
+    filter(strength_state == "5v5" & is_ot == 0) %>% 
+    select(!c(season,game_id,event_idx,strength_state,is_ot))
+  df_st <- pbp_xg %>% 
+    filter(strength_state %in% st_states & is_ot == 0) %>% 
+    select(!c(season,game_id,event_idx,strength_state,is_ot))
+  df_ot <- pbp_xg %>% 
+    filter(strength_state == "3v3" & is_ot == 1) %>% 
+    select(!c(season,game_id,event_idx,strength_state,is_ot))
   
   # 5v5 #
   xg_5v5 <- predict(
     xg_model_5v5,
     xgb.DMatrix(
-      data = data %>% 
-        filter(strength_state == "5v5") %>% 
-        select(all_of(xg_model_5v5$feature_names)) %>%
+      data = df_5v5 %>%
+        select(all_of(variable.names(xg_model_5v5))) %>%
         data.matrix(),
-      label = data %>%
-        filter(strength_state == "5v5") %>% 
+      label = df_5v5 %>%
         select(goal) %>%
         data.matrix()
     )
@@ -88,7 +121,7 @@ calculate_xg <- function(x){
     rename(xg = value) %>%
     bind_cols(
       select(
-        filter(data, strength_state == "5v5"),
+        filter(pbp_xg, strength_state == "5v5", is_ot == 0),
         event_idx
       )
     )
@@ -98,12 +131,10 @@ calculate_xg <- function(x){
   xg_st <- predict(
     xg_model_st,
     xgb.DMatrix(
-      data = data %>% 
-        filter(strength_state != "5v5") %>% 
-        select(all_of(xg_model_st$feature_names)) %>%
+      data = df_st %>%
+        select(all_of(variable.names(xg_model_st))) %>%
         data.matrix(),
-      label = data %>%
-        filter(strength_state != "5v5") %>% 
+      label = df_st %>%
         select(goal) %>%
         data.matrix()
     )
@@ -112,21 +143,42 @@ calculate_xg <- function(x){
     rename(xg = value) %>%
     bind_cols(
       select(
-        filter(data, strength_state != "5v5"),
+        filter(pbp_xg, strength_state %in% st_states, is_ot == 0),
         event_idx
       )
     )
   xg_st$event_idx = as.numeric(as.character(xg_st$event_idx))
   
+  # OT #
+  xg_ot <- predict(
+    xg_model_ot,
+    xgb.DMatrix(
+      data = df_ot %>%
+        select(all_of(variable.names(xg_model_ot))) %>%
+        data.matrix(),
+      label = df_ot %>%
+        select(goal) %>%
+        data.matrix()
+    )
+  ) %>%
+    as_tibble() %>%
+    rename(xg = value) %>%
+    bind_cols(
+      select(
+        filter(pbp_xg, strength_state == "3v3", is_ot == 1),
+        event_idx
+      )
+    )
+  xg_ot$event_idx = as.numeric(as.character(xg_ot$event_idx))
+  
   # Combine #
-  xg_pred <- bind_rows(xg_5v5,xg_st)
+  xg_pred <- bind_rows(xg_5v5,xg_st,xg_ot)
   x$event_idx <- as.numeric(as.character(x$event_idx))
   xg_pred <- xg_pred %>%
     right_join(x, by = "event_idx") %>%
     arrange(event_idx)
   
   return(xg_pred)
-  
 }
 game_scraper <- function(game_id){
   url <- glue("https://api-web.nhle.com/v1/gamecenter/{game_id}/play-by-play")
